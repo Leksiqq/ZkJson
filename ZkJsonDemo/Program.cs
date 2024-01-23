@@ -51,7 +51,7 @@ try
         if (await zk.existsAsync("/") is Stat stat)
         {
 
-            await JsonSerializer.SerializeAsync<ZkNode>(options.Writer, ZkNode.Node, serializerOptions);
+            await JsonSerializer.SerializeAsync(options.Writer, ZkNode.Node, serializerOptions);
             Console.WriteLine("\nRequested subtree was read successfully!");
         }
         else
@@ -65,8 +65,7 @@ try
     {
         if (await zk.existsAsync("/") is Stat stat)
         {
-            MemoryStream ms = new(Encoding.ASCII.GetBytes("[null]"));
-            await JsonSerializer.DeserializeAsync<ZkNode>(ms, serializerOptions);
+            
             Console.WriteLine("Requested subtree was deleted successfully!");
         }
         else

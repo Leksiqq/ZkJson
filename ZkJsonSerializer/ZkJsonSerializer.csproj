@@ -11,9 +11,9 @@
     <Title>Net.Leksi.ZkJson</Title>
     <Authors>leksiq</Authors>
     <Copyright>Алексей Юрьевич Захаров &lt;leksi@leksi.net&gt;, 2024</Copyright>
-    <PackageProjectUrl>https://github.com/Leksiqq/rubik2.net/wiki</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Leksiqq/zkjson.net/wiki</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/Leksiqq/rubik2.net</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Leksiqq/zkjson.net</RepositoryUrl>
     <IsPackable>true</IsPackable>
     <Version>1.0.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

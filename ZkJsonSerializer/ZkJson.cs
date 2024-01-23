@@ -1,5 +1,6 @@
 ﻿using org.apache.zookeeper;
 using org.apache.zookeeper.data;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static org.apache.zookeeper.ZooDefs;
@@ -13,14 +14,16 @@ public class ZkJson : JsonConverterFactory
     public ZooKeeper ZooKeeper { get; set; } = null!;
     public string Root { get; set; } = "/";
     public List<ACL> AclList { get; set; } = [new ACL((int)Perms.ALL, Ids.ANYONE_ID_UNSAFE)];
+    public ZkAction Action { get; set; } = ZkAction.Replace;
     internal string Path => $"/{string.Join('/', _path)}";
     internal bool IsReady { get; private set; } = true;
-    internal int OpsCount => _ops.Count;
+    internal bool Deletion { get; private set; } = false;
     public void Reset()
     {
         _ops.Clear();
         _path.Clear();
         IsReady = true;
+        Deletion = false;
     }
     public void PushPathComponent(string component)
     {
@@ -35,6 +38,15 @@ public class ZkJson : JsonConverterFactory
     {
         _ops.Add(op);
     }
+    public async Task DeleteAsync()
+    {
+        Deletion = true;
+        MemoryStream ms = new(Encoding.ASCII.GetBytes("[]"));
+        JsonSerializerOptions options = new();
+        options.Converters.Add(this);
+        await JsonSerializer.DeserializeAsync<ZkNode>(ms, options);
+        Reset();
+    }
     public override bool CanConvert(Type typeToConvert)
     {
         return typeof(ZkNode).IsAssignableFrom(typeToConvert);
@@ -42,10 +54,6 @@ public class ZkJson : JsonConverterFactory
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
         return new ZkJsonConverter();
-    }
-    internal void TruncOps(int count)
-    {
-        _ops.RemoveRange(count, _ops.Count - count);
     }
     internal async Task<List<OpResult>> RunOps()
     {

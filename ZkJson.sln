@@ -6,6 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZkJsonSerializer", "ZkJsonSerializer\ZkJsonSerializer.csproj", "{79190E4D-7C19-40F0-BD2C-0E85572239B8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZkJsonDemo", "ZkJsonDemo\ZkJsonDemo.csproj", "{40B0E8D4-303E-4877-9A90-4B915CE95D35}"
+	ProjectSection(ProjectDependencies) = postProject
+		{79190E4D-7C19-40F0-BD2C-0E85572239B8} = {79190E4D-7C19-40F0-BD2C-0E85572239B8}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{EAF6B517-4684-4E27-8C03-4AA364A46F62}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="ZkJsonSerializer-1.0.*.nupkg" />
+    <PackageReference Include="Net.Leksi.ZkJson" Version="1.0.*" />
   </ItemGroup>
 
 </Project>

@@ -24,7 +24,6 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
         if((ZkJson?)options.Converters.Where(c => c is ZkJson).FirstOrDefault() is ZkJson factory)
         {
             bool isRoot = false;
-            int deletingOpsCount = 0;
             if (factory.IsReady)
             {
                 isRoot = true;
@@ -34,7 +33,10 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
                     factory.PushPathComponent(root);
                 }
                 Delete(factory, factory.Path).Wait();
-                deletingOpsCount = factory.OpsCount;
+                if (factory.Deletion)
+                {
+                    return null;
+                }
             }
             if (reader.TokenType is JsonTokenType.StartObject)
             {
@@ -49,11 +51,7 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
                     {
                         throw new JsonException("Property name missed!");
                     }
-                    string? propertyName = reader.GetString();
-                    if (propertyName is null)
-                    {
-                        throw new JsonException("Property name missed!");
-                    }
+                    string propertyName = reader.GetString() ?? throw new JsonException("Property name missed!");
                     if (!reader.Read())
                     {
                         throw new JsonException("Property value missed!");
@@ -73,18 +71,10 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
                     {
                         break;
                     }
-                    if(isRoot && reader.TokenType is JsonTokenType.Null)
-                    {
-                        factory.TruncOps(deletingOpsCount);
-                        while (reader.Read()) { }
-                    }
-                    else
-                    {
-                        factory.PushPathComponent(pos.ToString("D18"));
-                        Read(ref reader, typeToConvert, options);
-                        factory.PopPathComponent();
-                        ++pos;
-                    }
+                    factory.PushPathComponent(pos.ToString("D18"));
+                    Read(ref reader, typeToConvert, options);
+                    factory.PopPathComponent();
+                    ++pos;
                 }
             }
             else
@@ -135,7 +125,7 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
             {
                 factory.RunOps().Wait();
             }
-            return ZkNode.Node;
+            return null;
         }
         throw new InvalidOperationException();
     }
