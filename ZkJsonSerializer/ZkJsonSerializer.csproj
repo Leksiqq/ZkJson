@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <LangVersion>12</LangVersion>
+    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Net.Leksi.ZkJson</AssemblyName>
+    <RootNamespace>Net.Leksi.ZkJson</RootNamespace>
+    <OutputType>Library</OutputType>
+    <Title>Net.Leksi.ZkJson</Title>
+    <Authors>leksiq</Authors>
+    <Copyright>Алексей Юрьевич Захаров &lt;leksi@leksi.net&gt;, 2024</Copyright>
+    <PackageProjectUrl>https://github.com/Leksiqq/rubik2.net/wiki</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Leksiqq/rubik2.net</RepositoryUrl>
+    <IsPackable>true</IsPackable>
+    <Version>1.0.0</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>zookeeper jsonserializer serialize deserialize</PackageTags>
+    <Description>Библиотека для хранения и загрузки данных в ZooKeeper с помощью JsonSerializer. The library for storage and loading data by ZooKeeper with JsonSerializer.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <Move SourceFiles="$(OutputPath)\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="W:\C#\nuget.local" />
+  </Target>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+</Project>

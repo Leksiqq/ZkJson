@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "ZkJsonDemo:w": {
+      "commandName": "Project",
+      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -w ..\\..\\..\\..\\Test\\test.json"
+    },
+    "ZkJsonDemo:d": {
+      "commandName": "Project",
+      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -d"
+    },
+    "ZkJsonDemo:r": {
+      "commandName": "Project",
+      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -r ..\\..\\..\\..\\Test\\test1.json"
+    },
+    "ZkJsonDemo:r1": {
+      "commandName": "Project",
+      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -r -"
+    }
+  }
+}

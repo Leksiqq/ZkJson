@@ -1,0 +1,21 @@
+﻿{
+  "para1": {
+    "name": "zkeditor1",
+    "args": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "para2": {
+    "name": "zkeditor2",
+    "args": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "done": false
+  }
+}
