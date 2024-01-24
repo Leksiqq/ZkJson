@@ -1,1 +1,22 @@
-Hi
+**Attention!** _This article, as well as this announcement, are automatically translated from Russian_.
+
+The **Net.Leksi.ZkJson** library allows you to save JSON files in [Apache ZooKeeper](https://zookeeper.apache.org/), as well as load them from `ZooKeeper` using the standard **Microsoft** library [System .Text.Json](https://learn.microsoft.com/en-us/dotnet/api/system.text.json?view=net-8.0).
+
+This feature can be primarily useful when creating and running microservice applications in **Docker**, when the entire configuration is placed in `ZooKeeper`, and the connection string with `ZooKeeper` is passed to the service upon startup, with the corresponding `chroot` specified.
+
+On the other hand, this library can be used to create a utility for uploading the required configurations into `ZooKeeper`.
+
+All classes are contained in the `Net.Leksi.ZkJson` namespace.
+
+- [ZkJson](wiki/ZkJson-en) - the main class, which is the factory of the corresponding Json converter. Also has properties used for settings.
+
+- [ZkAction](wiki/ZkAction-en) - an enumeration whose elements correspond to the options for updating data in `ZooKeeper`; in the current version only the option of complete replacement is implemented.
+
+- [ZkStub](wiki/ZkStub-en) - a stub class to indicate to the serialization/deserialization processor that the appropriate Json converter should be used.
+
+It is also suggested that you familiarize yourself with the demonstration projects:
+- [Demo:ZkJsonDemo](wiki/Demo-ZkJsonDemo) - a utility for reading, writing and deleting `ZooKeeper` data. For simplicity, it is implemented without authentication and authorization.
+- [Demo:TestProject1](wiki/Demo-TestProject1) - shows an example usage for writing data generated programmatically using `LINQ`.
+
+NuGet Package: [Net.Leksi.ZkJson](https://www.nuget.org/packages/Net.Leksi.ZkJson/)
+
