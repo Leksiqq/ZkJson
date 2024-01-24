@@ -60,9 +60,6 @@ try
 
             await JsonSerializer.SerializeAsync(options.Writer, ZkStub.Instance, serializerOptions);
             Console.WriteLine(s_successRead);
-            factory.Reset();
-            JsonElement jsonElement = JsonSerializer.SerializeToElement(ZkStub.Instance, serializerOptions);
-            Console.WriteLine(jsonElement);
         }
         else
         {

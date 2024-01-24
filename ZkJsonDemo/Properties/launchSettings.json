@@ -6,7 +6,7 @@
     },
     "ZkJsonDemo:w": {
       "commandName": "Project",
-      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -w ..\\..\\..\\..\\Test\\test.json"
+      "commandLineArgs": "-c \"vm-kafka:2181/foo/bar\" -w ..\\..\\..\\..\\Test\\test.json"
     },
     "ZkJsonDemo:d": {
       "commandName": "Project",
