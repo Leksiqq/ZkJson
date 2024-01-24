@@ -35,6 +35,8 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                 Delete(factory, factory.Path).Wait();
                 if (factory.Deletion)
                 {
+                    while (reader.Read()) { }
+                    factory.RunOps().Wait();
                     return null;
                 }
             }
