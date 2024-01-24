@@ -8,15 +8,15 @@ On the other hand, this library can be used to create a utility for uploading th
 
 All classes are contained in the `Net.Leksi.ZkJson` namespace.
 
-- [ZkJson](wiki/ZkJson-en) - the main class, which is the factory of the corresponding Json converter. Also has properties used for settings.
+- [ZkJson](https://github.com/Leksiqq/ZkJson.net/wiki/ZkJson-en) - the main class, which is the factory of the corresponding Json converter. Also has properties used for settings.
 
-- [ZkAction](wiki/ZkAction-en) - an enumeration whose elements correspond to the options for updating data in `ZooKeeper`; in the current version only the option of complete replacement is implemented.
+- [ZkAction](https://github.com/Leksiqq/ZkJson.net/wiki/ZkAction-en) - an enumeration whose elements correspond to the options for updating data in `ZooKeeper`; in the current version only the option of complete replacement is implemented.
 
-- [ZkStub](wiki/ZkStub-en) - a stub class to indicate to the serialization/deserialization processor that the appropriate Json converter should be used.
+- [ZkStub](https://github.com/Leksiqq/ZkJson.net/wiki/ZkStub-en) - a stub class to indicate to the serialization/deserialization processor that the appropriate Json converter should be used.
 
 It is also suggested that you familiarize yourself with the demonstration projects:
-- [Demo:ZkJsonDemo](wiki/Demo-ZkJsonDemo) - a utility for reading, writing and deleting `ZooKeeper` data. For simplicity, it is implemented without authentication and authorization.
-- [Demo:TestProject1](wiki/Demo-TestProject1) - shows an example usage for writing data generated programmatically using `LINQ`.
+- [Demo:ZkJsonDemo](https://github.com/Leksiqq/ZkJson.net/wiki/Demo-ZkJsonDemo) - a utility for reading, writing and deleting `ZooKeeper` data. For simplicity, it is implemented without authentication and authorization.
+- [Demo:TestProject1](https://github.com/Leksiqq/ZkJson.net/wiki/Demo-TestProject1) - shows an example usage for writing data generated programmatically using `LINQ`.
 
 NuGet Package: [Net.Leksi.ZkJson](https://www.nuget.org/packages/Net.Leksi.ZkJson/)
 
