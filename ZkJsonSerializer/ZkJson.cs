@@ -25,31 +25,18 @@ public class ZkJson : JsonConverterFactory
         IsReady = true;
         Deletion = false;
     }
-    public void PushPathComponent(string component)
-    {
-        IsReady = false;
-        _path.Add(component);
-    }
-    public void PopPathComponent()
-    {
-        _path.RemoveAt(_path.Count - 1);
-    }
-    public void AddOp(Op op)
-    {
-        _ops.Add(op);
-    }
     public async Task DeleteAsync()
     {
         Deletion = true;
         MemoryStream ms = new(Encoding.ASCII.GetBytes("[]"));
         JsonSerializerOptions options = new();
         options.Converters.Add(this);
-        await JsonSerializer.DeserializeAsync<ZkNode>(ms, options);
+        await JsonSerializer.DeserializeAsync<ZkStub>(ms, options);
         Reset();
     }
     public override bool CanConvert(Type typeToConvert)
     {
-        return typeof(ZkNode).IsAssignableFrom(typeToConvert);
+        return typeof(ZkStub).IsAssignableFrom(typeToConvert);
     }
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
@@ -58,5 +45,18 @@ public class ZkJson : JsonConverterFactory
     internal async Task<List<OpResult>> RunOps()
     {
         return await ZooKeeper.multiAsync(_ops);
+    }
+    internal void PushPathComponent(string component)
+    {
+        IsReady = false;
+        _path.Add(component);
+    }
+    internal void PopPathComponent()
+    {
+        _path.RemoveAt(_path.Count - 1);
+    }
+    internal void AddOp(Op op)
+    {
+        _ops.Add(op);
     }
 }

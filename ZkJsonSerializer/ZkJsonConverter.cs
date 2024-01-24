@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Net.Leksi.ZkJson;
 
-internal class ZkJsonConverter : JsonConverter<ZkNode>
+internal class ZkJsonConverter : JsonConverter<ZkStub>
 {
     private static Regex manySlashes = new("/{2,}");
     internal static int DOUBLE = 0x10000;
@@ -19,7 +19,7 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
         _binWriter = new BinaryWriter(_memoryStream);
         _binReader = new BinaryReader(_memoryStream);
     }
-    public override ZkNode? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override ZkStub? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if((ZkJson?)options.Converters.Where(c => c is ZkJson).FirstOrDefault() is ZkJson factory)
         {
@@ -129,7 +129,7 @@ internal class ZkJsonConverter : JsonConverter<ZkNode>
         }
         throw new InvalidOperationException();
     }
-    public override void Write(Utf8JsonWriter writer, ZkNode value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, ZkStub value, JsonSerializerOptions options)
     {
         if ((ZkJson?)options.Converters.Where(c => c is ZkJson).FirstOrDefault() is ZkJson factory)
         {

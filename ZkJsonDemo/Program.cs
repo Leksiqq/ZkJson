@@ -1,9 +1,16 @@
-﻿using org.apache.zookeeper.data;
+﻿using Net.Leksi.ZkJson;
 using org.apache.zookeeper;
-using ZkJsonDemo;
-using Net.Leksi.ZkJson;
+using org.apache.zookeeper.data;
 using System.Text.Json;
-using System.Text;
+using ZkJsonDemo;
+
+const string s_successUpdate = "Requested subtree was updated successfully!";
+const string s_successRead = "\nRequested subtree was read successfully!";
+const string s_successDelete = "Requested subtree was deleted successfully!";
+const string s_connecting = "Connecting to ZooKeeper '{0}' ...";
+const string s_zkState = "ZooKeeper is {0}";
+const string s_failed = "failed!";
+const string s_pathNotExists = "Requested subtree does not exist!";
 
 Options? options = Options.Create(args);
 if (options is null)
@@ -17,15 +24,15 @@ ManualResetEventSlim mres = new(false);
 
 try
 {
-    Console.WriteLine("Connecting to ZooKeeper '{0}' ...", options.ConnectionString);
+    Console.WriteLine(s_connecting, options.ConnectionString);
     zk = new ZooKeeper(options.ConnectionString, options.Timeout, new ZKWatcher(mres));
     mres.Wait(options.Timeout);
 
-    Console.WriteLine("ZooKeeper is {0}", zk.getState());
+    Console.WriteLine(s_zkState, zk.getState());
 
     if (zk.getState() is not ZooKeeper.States.CONNECTED)
     {
-        Console.WriteLine("failed!");
+        Console.WriteLine(s_failed);
         Environment.Exit(1);
         return;
     }
@@ -43,20 +50,23 @@ try
 
     if (options.Reader is { })
     {
-        await JsonSerializer.DeserializeAsync<ZkNode>(options.Reader, serializerOptions);
-        Console.WriteLine("Requested subtree was updated successfully!");
+        await JsonSerializer.DeserializeAsync<ZkStub>(options.Reader, serializerOptions);
+        Console.WriteLine(s_successUpdate);
     }
     else if (options.Writer is { })
     {
         if (await zk.existsAsync("/") is Stat stat)
         {
 
-            await JsonSerializer.SerializeAsync(options.Writer, ZkNode.Node, serializerOptions);
-            Console.WriteLine("\nRequested subtree was read successfully!");
+            await JsonSerializer.SerializeAsync(options.Writer, ZkStub.Instance, serializerOptions);
+            Console.WriteLine(s_successRead);
+            factory.Reset();
+            JsonElement jsonElement = JsonSerializer.SerializeToElement(ZkStub.Instance, serializerOptions);
+            Console.WriteLine(jsonElement);
         }
         else
         {
-            Console.WriteLine("Requested subtree does not exist!");
+            Console.WriteLine(s_pathNotExists);
             Environment.Exit(1);
             return;
         }
@@ -65,12 +75,12 @@ try
     {
         if (await zk.existsAsync("/") is Stat stat)
         {
-            
-            Console.WriteLine("Requested subtree was deleted successfully!");
+            await factory.DeleteAsync();
+            Console.WriteLine(s_successDelete);
         }
         else
         {
-            Console.WriteLine("Requested subtree does not exist!");
+            Console.WriteLine(s_pathNotExists);
             Environment.Exit(1);
             return;
         }
