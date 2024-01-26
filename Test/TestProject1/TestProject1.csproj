@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ZkJsonSerializer\ZkJsonSerializer.csproj" />
+    <ProjectReference Include="..\..\Library\ZkJson.csproj" />
   </ItemGroup>
 
 </Project>

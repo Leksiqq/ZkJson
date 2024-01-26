@@ -21,7 +21,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
     }
     public override ZkStub? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if((ZkJson?)options.Converters.Where(c => c is ZkJson).FirstOrDefault() is ZkJson factory)
+        if((ZkJsonSerializer?)options.Converters.Where(c => c is ZkJsonSerializer).FirstOrDefault() is ZkJsonSerializer factory)
         {
             bool isRoot = false;
             if (factory.IsReady)
@@ -133,7 +133,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
     }
     public override void Write(Utf8JsonWriter writer, ZkStub value, JsonSerializerOptions options)
     {
-        if ((ZkJson?)options.Converters.Where(c => c is ZkJson).FirstOrDefault() is ZkJson factory)
+        if ((ZkJsonSerializer?)options.Converters.Where(c => c is ZkJsonSerializer).FirstOrDefault() is ZkJsonSerializer factory)
         {
             if (factory.IsReady)
             {
@@ -233,7 +233,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
     private byte[] ToBytes(string value) => ToBytes(bw => bw.Write((string)value));
     private byte[] ToBytes(long value) => ToBytes(bw => bw.Write((long)value));
     private byte[] ToBytes(double value) => ToBytes(bw => bw.Write((double)value));
-    private static async Task Delete(ZkJson factory, string path)
+    private static async Task Delete(ZkJsonSerializer factory, string path)
     {
         if (await factory.ZooKeeper.existsAsync(path) is Stat stat)
         {

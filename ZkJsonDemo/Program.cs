@@ -37,7 +37,7 @@ try
         return;
     }
 
-    ZkJson factory = new() 
+    ZkJsonSerializer factory = new() 
     {
         ZooKeeper = zk,
     };

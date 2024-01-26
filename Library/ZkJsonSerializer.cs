@@ -1,6 +1,5 @@
 ﻿using org.apache.zookeeper;
 using org.apache.zookeeper.data;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -8,7 +7,7 @@ using static org.apache.zookeeper.ZooDefs;
 
 namespace Net.Leksi.ZkJson;
 
-public class ZkJson : JsonConverterFactory
+public class ZkJsonSerializer : JsonConverterFactory
 {
     private readonly List<string> _path = [];
     private readonly List<Op> _ops = [];

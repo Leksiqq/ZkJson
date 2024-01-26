@@ -27,7 +27,7 @@ public class Tests
         ZooKeeper zk = new(s_connectionString, 1000, new MyWatcher(mres));
         mres.Wait();
 
-        ZkJson zkJson = new()
+        ZkJsonSerializer zkJson = new()
         {
             ZooKeeper = zk,
         };

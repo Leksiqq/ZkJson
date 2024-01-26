@@ -8,7 +8,7 @@ On the other hand, this library can be used to create a utility for uploading th
 
 All classes are contained in the `Net.Leksi.ZkJson` namespace.
 
-- [ZkJson](https://github.com/Leksiqq/ZkJson.net/wiki/ZkJson-en) - the main class, which is the factory of the corresponding Json converter. Also has properties used for settings.
+- [ZkJsonSerializer](https://github.com/Leksiqq/ZkJson.net/wiki/ZkJsonSerializer-en) - the main class, which is the factory of the corresponding Json converter. Also has properties used for settings.
 
 - [ZkAction](https://github.com/Leksiqq/ZkJson.net/wiki/ZkAction-en) - an enumeration whose elements correspond to the options for updating data in `ZooKeeper`; in the current version only the option of complete replacement is implemented.
 
