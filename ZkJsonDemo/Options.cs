@@ -23,7 +23,7 @@ internal string ConnectionString { get; private set; } = "localhost:2181";
     internal Stream? Reader { get; private set; } = null;
     internal Stream? Writer { get; private set; } = null;
     internal bool Delete { get; private set; } = false;
-    internal int Timeout { get; private set; } = 600000;
+    internal int Timeout { get; private set; } = 1000;
     private Options() { }
     internal static Options? Create(string[] args)
     {
