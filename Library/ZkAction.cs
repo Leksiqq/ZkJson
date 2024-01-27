@@ -3,4 +3,5 @@
 public enum ZkAction
 {
     Replace,
+    Update,
 }

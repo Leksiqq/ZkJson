@@ -19,6 +19,10 @@
     "ZkJsonDemo:r1": {
       "commandName": "Project",
       "commandLineArgs": "-c \"vm-kafka:2181/foo\" -r -"
+    },
+    "ZkJsonDemo:u": {
+      "commandName": "Project",
+      "commandLineArgs": "-c \"vm-kafka:2181/foo\" -u -w ..\\..\\..\\..\\Test\\update.json"
     }
   }
 }

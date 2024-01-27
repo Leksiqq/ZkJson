@@ -4,7 +4,9 @@ internal class Options
 {
     private const string s_usage = @$"Usage:
 
-{{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-r|-w] [<file>|-]
+{{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-u] -w [<file>|-]
+or
+{{0}} [-c <zookeeper connection string>] [-t <timeout ms>] -r [<file>|-]
 or
 {{0}} [-c <zookeeper connection string>] [-t <timeout ms>] -d
 
@@ -12,10 +14,11 @@ where
 
     -c <zookeeper connection string>    ZooKeeper connection string ""addr1:port1,addr2:port2,...[/optional_chroot]""
     -t <timeout ms>                     Connection timeout, ms (default 1000)
-    -r -                                Read data to console
-    -r <file>                           Read data to file <file>
+    -u                                  Update data
     -w -                                Write data from console
     -w <file>                           Write data from file <file>
+    -r -                                Read data to console
+    -r <file>                           Read data to file <file>
     -d                                  Delete data
 ";
 
@@ -23,6 +26,7 @@ internal string ConnectionString { get; private set; } = "localhost:2181";
     internal Stream? Reader { get; private set; } = null;
     internal Stream? Writer { get; private set; } = null;
     internal bool Delete { get; private set; } = false;
+    internal bool Update { get; private set; } = false;
     internal int Timeout { get; private set; } = 1000;
     private Options() { }
     internal static Options? Create(string[] args)
@@ -48,6 +52,11 @@ internal string ConnectionString { get; private set; } = "localhost:2181";
                     }
                     if (arg == "-r")
                     {
+                        if (options.Update)
+                        {
+                            CannotBothReadAndUpdate();
+                            return null;
+                        }
                         if (options.Delete || options.Reader is { } || options.Writer is { })
                         {
                             ExtraKeysFound();
@@ -71,8 +80,28 @@ internal string ConnectionString { get; private set; } = "localhost:2181";
                         waiting = Waiting.Timeout;
                         break;
                     }
+                    if(arg == "-u")
+                    {
+                        if (options.Delete)
+                        {
+                            CannotBothDeleteAndUpdate();
+                            return null;
+                        }
+                        if (options.Writer is { })
+                        {
+                            CannotBothReadAndUpdate();
+                            return null;
+                        }
+                        options.Update = true;
+                        break;
+                    }
                     if (arg == "-d")
                     {
+                        if (options.Update)
+                        {
+                            CannotBothDeleteAndUpdate();
+                            return null;
+                        }
                         if (options.Delete || options.Reader is { } || options.Writer is { })
                         {
                             ExtraKeysFound();
@@ -125,6 +154,19 @@ internal string ConnectionString { get; private set; } = "localhost:2181";
 
         return options;
     }
+
+    private static void CannotBothReadAndUpdate()
+    {
+        Console.WriteLine($"Command line cannot have -r and -u keys together!");
+        Environment.Exit(1);
+    }
+
+    private static void CannotBothDeleteAndUpdate()
+    {
+        Console.WriteLine($"Command line cannot have -d and -u keys together!");
+        Environment.Exit(1);
+    }
+
     private static void ExtraKeysFound()
     {
         Console.WriteLine($"Command line must have one -r or -w or -d key!");

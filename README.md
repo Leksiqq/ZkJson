@@ -14,6 +14,8 @@ All classes are contained in the `Net.Leksi.ZkJson` namespace.
 
 - [ZkStub](https://github.com/Leksiqq/ZkJson.net/wiki/ZkStub-en) - a stub class to indicate to the serialization/deserialization processor that the appropriate Json converter should be used.
 
+- [ZkJsonException](https://github.com/Leksiqq/ZkJson.net/wiki/ZkJsonException-en) - an exception.
+
 It is also suggested that you familiarize yourself with the demonstration projects:
 - [Demo:ZkJsonDemo](https://github.com/Leksiqq/ZkJson.net/wiki/Demo-ZkJsonDemo) - a utility for reading, writing and deleting `ZooKeeper` data. For simplicity, it is implemented without authentication and authorization.
 - [Demo:TestProject1](https://github.com/Leksiqq/ZkJson.net/wiki/Demo-TestProject1) - shows an example usage for writing data generated programmatically using `LINQ`.

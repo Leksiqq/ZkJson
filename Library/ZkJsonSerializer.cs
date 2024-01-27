@@ -34,6 +34,10 @@ public class ZkJsonSerializer : JsonConverterFactory
         await JsonSerializer.DeserializeAsync<ZkStub>(ms, options);
         Reset();
     }
+    public async Task<bool> RootExists()
+    {
+        return await ZooKeeper.existsAsync(Root) is { };
+    }
     public override bool CanConvert(Type typeToConvert)
     {
         return typeof(ZkStub).IsAssignableFrom(typeToConvert);

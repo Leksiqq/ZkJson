@@ -50,6 +50,10 @@ try
 
     if (options.Reader is { })
     {
+        if (options.Update)
+        {
+            factory.Action = ZkAction.Update;
+        }
         await JsonSerializer.DeserializeAsync<ZkStub>(options.Reader, serializerOptions);
         Console.WriteLine(s_successUpdate);
     }

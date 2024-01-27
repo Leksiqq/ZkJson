@@ -12,12 +12,12 @@
     <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <ProjectReference Include="..\ZkJsonSerializer\ZkJsonSerializer.csproj" />
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Net.Leksi.ZkJson" Version="1.1.*" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Net.Leksi.ZkJson" Version="1.0.*" />
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\Library\ZkJson.csproj" />
   </ItemGroup>
 
 </Project>
