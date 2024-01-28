@@ -69,15 +69,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     }
     internal async Task<List<OpResult>> RunOps()
     {
-        List<OpResult> result = [];
-        foreach (var op in _ops)
-        {
-            Console.WriteLine($"{op}: {op.getPath()}");
-            result.AddRange(await ZooKeeper.multiAsync([op]));
-        }
-        return result;
-
-        //return await ZooKeeper.multiAsync(_ops);
+        return await ZooKeeper.multiAsync(_ops);
     }
     internal void PushPathComponent(string component)
     {
