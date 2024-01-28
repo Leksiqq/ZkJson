@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Net.Leksi.ZkJson" Version="1.1.*" />
+    <PackageReference Include="Net.Leksi.ZkJson" Version="1.2.*" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">

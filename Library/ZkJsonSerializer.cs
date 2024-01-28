@@ -38,6 +38,27 @@ public class ZkJsonSerializer : JsonConverterFactory
     {
         return await ZooKeeper.existsAsync(Root) is { };
     }
+    public async Task CreateRoot()
+    {
+        string[] parts = Root.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        int i = parts.Length;
+        for (; i > 0 ; --i)
+        {
+            string probe = $"/{string.Join('/', parts.Take(i))}";
+            if(await ZooKeeper.existsAsync(probe) is { })
+            {
+                break;
+            }
+        }
+        for (++i; i <= parts.Length; ++i)
+        {
+            string probe = $"/{string.Join('/', parts.Take(i))}";
+            if (await ZooKeeper.existsAsync(probe) is null)
+            {
+                await ZooKeeper.createAsync(probe, [], AclList, CreateMode.PERSISTENT);
+            }
+        }
+    }
     public override bool CanConvert(Type typeToConvert)
     {
         return typeof(ZkStub).IsAssignableFrom(typeToConvert);
@@ -48,7 +69,15 @@ public class ZkJsonSerializer : JsonConverterFactory
     }
     internal async Task<List<OpResult>> RunOps()
     {
-        return await ZooKeeper.multiAsync(_ops);
+        List<OpResult> result = [];
+        foreach (var op in _ops)
+        {
+            Console.WriteLine($"{op}: {op.getPath()}");
+            result.AddRange(await ZooKeeper.multiAsync([op]));
+        }
+        return result;
+
+        //return await ZooKeeper.multiAsync(_ops);
     }
     internal void PushPathComponent(string component)
     {

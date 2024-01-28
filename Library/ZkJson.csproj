@@ -15,11 +15,13 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Leksiqq/zkjson.net</RepositoryUrl>
     <IsPackable>true</IsPackable>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>zookeeper jsonserializer serialize deserialize microservices configuration</PackageTags>
     <Description>Библиотека для сохранения и загрузки данных в/из ZooKeeper с помощью JsonSerializer. The library for saving and loading data to/from ZooKeeper using JsonSerializer.</Description>
     <PackageReleaseNotes>
+      1.2.0 Добавлена функциональность.
+      1.2.0 Added functionality.
       1.1.0 Добавлена функциональность.
       1.1.0 Added functionality.
       1.0.5 Изменено имя класса ZkJson на ZkJsonSerializer, чтобы избегать конфликта с пространством имён.
