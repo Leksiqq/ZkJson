@@ -10,15 +10,6 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
 {
     private static Regex manySlashes = new("/{2,}");
     internal static int DOUBLE = 0x10000;
-    private readonly MemoryStream _memoryStream = new();
-    private readonly BinaryWriter _binWriter;
-    private readonly BinaryReader _binReader;
-
-    public ZkJsonConverter()
-    {
-        _binWriter = new BinaryWriter(_memoryStream);
-        _binReader = new BinaryReader(_memoryStream);
-    }
     public override ZkStub? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if((ZkJsonSerializer?)options.Converters.Where(c => c is ZkJsonSerializer).FirstOrDefault() is ZkJsonSerializer factory)
@@ -47,11 +38,11 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
             {
                 if(factory.Action is ZkAction.Replace)
                 {
-                    factory.AddOp(Op.create(factory.Path, ToBytes((long)JsonValueKind.Object), factory.AclList, CreateMode.PERSISTENT));
+                    factory.AddOp(Op.create(factory.Path, factory.ToBytes((long)JsonValueKind.Object), factory.AclList, CreateMode.PERSISTENT));
                 }
                 else
                 {
-                    factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.Object)));
+                    factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.Object)));
                 }
                 while (reader.Read())
                 {
@@ -81,11 +72,11 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                 }
                 if (factory.Action is ZkAction.Replace)
                 {
-                    factory.AddOp(Op.create(factory.Path, ToBytes((long)JsonValueKind.Array), factory.AclList, CreateMode.PERSISTENT));
+                    factory.AddOp(Op.create(factory.Path, factory.ToBytes((long)JsonValueKind.Array), factory.AclList, CreateMode.PERSISTENT));
                 }
                 else
                 {
-                    factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.Array)));
+                    factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.Array)));
                 }
                 long pos = 0;
                 while (reader.Read())
@@ -108,58 +99,58 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                     case JsonTokenType.String:
                         if (factory.Action is ZkAction.Replace)
                         {
-                            factory.AddOp(Op.create(factory.Path, ToBytes((long)JsonValueKind.String), factory.AclList, CreateMode.PERSISTENT));
+                            factory.AddOp(Op.create(factory.Path, factory.ToBytes((long)JsonValueKind.String), factory.AclList, CreateMode.PERSISTENT));
                         }
                         else
                         {
-                            factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.String)));
+                            factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.String)));
                         }
-                        bytes = ToBytes(reader.GetString()!);
+                        bytes = factory.ToBytes(reader.GetString()!);
                         break;
                     case JsonTokenType.Number:
                         if (reader.TryGetInt64(out long longValue))
                         {
                             if (factory.Action is ZkAction.Replace)
                             {
-                                factory.AddOp(Op.create(factory.Path, ToBytes((long)JsonValueKind.Number), factory.AclList, CreateMode.PERSISTENT));
+                                factory.AddOp(Op.create(factory.Path, factory.ToBytes((long)JsonValueKind.Number), factory.AclList, CreateMode.PERSISTENT));
                             }
                             else
                             {
-                                factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.Number)));
+                                factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.Number)));
                             }
-                            bytes = ToBytes(longValue);
+                            bytes = factory.ToBytes(longValue);
                         }
                         else if (reader.TryGetDouble(out double doubleValue))
                         {
                             if (factory.Action is ZkAction.Replace)
                             {
-                                factory.AddOp(Op.create(factory.Path, ToBytes((int)JsonValueKind.Number | DOUBLE), factory.AclList, CreateMode.PERSISTENT));
+                                factory.AddOp(Op.create(factory.Path, factory.ToBytes((int)JsonValueKind.Number | DOUBLE), factory.AclList, CreateMode.PERSISTENT));
                             }
                             else
                             {
-                                factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.Number | DOUBLE)));
+                                factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.Number | DOUBLE)));
                             }
-                            bytes = ToBytes(doubleValue);
+                            bytes = factory.ToBytes(doubleValue);
                         }
                         break;
                     case JsonTokenType.True:
                         if (factory.Action is ZkAction.Replace)
                         {
-                            factory.AddOp(Op.create(factory.Path, ToBytes((int)JsonValueKind.True), factory.AclList, CreateMode.PERSISTENT));
+                            factory.AddOp(Op.create(factory.Path, factory.ToBytes((int)JsonValueKind.True), factory.AclList, CreateMode.PERSISTENT));
                         }
                         else
                         {
-                            factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.True)));
+                            factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.True)));
                         }
                         break;
                     case JsonTokenType.False:
                         if (factory.Action is ZkAction.Replace)
                         {
-                            factory.AddOp(Op.create(factory.Path, ToBytes((int)JsonValueKind.False), factory.AclList, CreateMode.PERSISTENT));
+                            factory.AddOp(Op.create(factory.Path, factory.ToBytes((int)JsonValueKind.False), factory.AclList, CreateMode.PERSISTENT));
                         }
                         else
                         {
-                            factory.AddOp(Op.setData(factory.Path, ToBytes((long)JsonValueKind.False)));
+                            factory.AddOp(Op.setData(factory.Path, factory.ToBytes((long)JsonValueKind.False)));
                         }
                         break;
                     case JsonTokenType.Null:
@@ -217,7 +208,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
             DataResult dr = factory.ZooKeeper.getDataAsync(factory.Path).Result;
             bool isDouble = false;
             JsonValueKind jsonValueKind = JsonValueKind.Undefined;
-            int valueKind = (int)BytesToLong(dr.Data);
+            int valueKind = (int)factory.BytesToLong(dr.Data);
             if((valueKind & DOUBLE) == DOUBLE)
             {
                 valueKind ^= DOUBLE;
@@ -253,18 +244,18 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
             else if(jsonValueKind is JsonValueKind.String)
             {
                 dr = factory.ZooKeeper.getDataAsync($"{factory.Path}/_").Result;
-                writer.WriteStringValue(BytesToString(dr.Data));
+                writer.WriteStringValue(factory.BytesToString(dr.Data));
             }
             else if(jsonValueKind is JsonValueKind.Number)
             {
                 dr = factory.ZooKeeper.getDataAsync($"{factory.Path}/_").Result;
                 if (isDouble)
                 {
-                    writer.WriteNumberValue(BytesToDouble(dr.Data));
+                    writer.WriteNumberValue(factory.BytesToDouble(dr.Data));
                 }
                 else
                 {
-                    writer.WriteNumberValue(BytesToLong(dr.Data));
+                    writer.WriteNumberValue(factory.BytesToLong(dr.Data));
                 }
             }
             else if (jsonValueKind is JsonValueKind.False)
@@ -284,26 +275,6 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
         }
         throw new InvalidOperationException();
     }
-    private object FromBytes(byte[] bytes, Func<BinaryReader, object> func)
-    {
-        _memoryStream.SetLength(0);
-        _memoryStream.Write(bytes);
-        _memoryStream.Position = 0;
-        return func(_binReader);
-    }
-    private double BytesToDouble(byte[] bytes) => (double)FromBytes(bytes, br => br.ReadDouble());
-    private long BytesToLong(byte[] bytes) => (long)FromBytes(bytes, br => br.ReadInt64());
-    private string BytesToString(byte[] bytes) => (string)FromBytes(bytes, br => br.ReadString());
-    private byte[] ToBytes(Action<BinaryWriter> action)
-    {
-        _memoryStream.SetLength(0);
-        action(_binWriter);
-        _binWriter.Flush();
-        return _memoryStream.ToArray();
-    }
-    private byte[] ToBytes(string value) => ToBytes(bw => bw.Write((string)value));
-    private byte[] ToBytes(long value) => ToBytes(bw => bw.Write((long)value));
-    private byte[] ToBytes(double value) => ToBytes(bw => bw.Write((double)value));
     private static async Task Delete(ZkJsonSerializer factory, string path)
     {
         if (await factory.ZooKeeper.existsAsync(path) is Stat stat)

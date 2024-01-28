@@ -11,6 +11,10 @@ public class ZkJsonSerializer : JsonConverterFactory
 {
     private readonly List<string> _path = [];
     private readonly List<Op> _ops = [];
+    private readonly MemoryStream _memoryStream = new();
+    private BinaryWriter? _binWriter = null;
+    private BinaryReader? _binReader = null;
+
     public ZooKeeper ZooKeeper { get; set; } = null!;
     public string Root { get; set; } = "/";
     public List<ACL> AclList { get; set; } = [new ACL((int)Perms.ALL, Ids.ANYONE_ID_UNSAFE)];
@@ -38,7 +42,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     {
         return await ZooKeeper.existsAsync(Root) is { };
     }
-    public async Task CreateRoot()
+    public async Task CreateRoot(int valueKind)
     {
         string[] parts = Root.Split('/', StringSplitOptions.RemoveEmptyEntries);
         int i = parts.Length;
@@ -55,7 +59,7 @@ public class ZkJsonSerializer : JsonConverterFactory
             string probe = $"/{string.Join('/', parts.Take(i))}";
             if (await ZooKeeper.existsAsync(probe) is null)
             {
-                await ZooKeeper.createAsync(probe, [], AclList, CreateMode.PERSISTENT);
+                await ZooKeeper.createAsync(probe, ToBytes(i < parts.Length ? (int)JsonValueKind.Object : valueKind), AclList, CreateMode.PERSISTENT);
             }
         }
     }
@@ -83,5 +87,33 @@ public class ZkJsonSerializer : JsonConverterFactory
     internal void AddOp(Op op)
     {
         _ops.Add(op);
+    }
+    internal double BytesToDouble(byte[] bytes) => (double)FromBytes(bytes, br => br.ReadDouble());
+    internal long BytesToLong(byte[] bytes) => (long)FromBytes(bytes, br => br.ReadInt64());
+    internal string BytesToString(byte[] bytes) => (string)FromBytes(bytes, br => br.ReadString());
+    internal byte[] ToBytes(string value) => ToBytes(bw => bw.Write((string)value));
+    internal byte[] ToBytes(long value) => ToBytes(bw => bw.Write((long)value));
+    internal byte[] ToBytes(double value) => ToBytes(bw => bw.Write((double)value));
+    private object FromBytes(byte[] bytes, Func<BinaryReader, object> func)
+    {
+        if(_binReader is null)
+        {
+            _binReader = new BinaryReader(_memoryStream);
+        }
+        _memoryStream.SetLength(0);
+        _memoryStream.Write(bytes);
+        _memoryStream.Position = 0;
+        return func(_binReader);
+    }
+    private byte[] ToBytes(Action<BinaryWriter> action)
+    {
+        if (_binWriter is null)
+        {
+            _binWriter = new BinaryWriter(_memoryStream);
+        }
+        _memoryStream.SetLength(0);
+        action(_binWriter);
+        _binWriter.Flush();
+        return _memoryStream.ToArray();
     }
 }
