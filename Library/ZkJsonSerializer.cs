@@ -42,7 +42,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     {
         return await ZooKeeper.existsAsync(Root) is { };
     }
-    public async Task CreateRoot(int valueKind)
+    public async Task CreateRoot()
     {
         string[] parts = Root.Split('/', StringSplitOptions.RemoveEmptyEntries);
         int i = parts.Length;
@@ -59,7 +59,7 @@ public class ZkJsonSerializer : JsonConverterFactory
             string probe = $"/{string.Join('/', parts.Take(i))}";
             if (await ZooKeeper.existsAsync(probe) is null)
             {
-                await ZooKeeper.createAsync(probe, ToBytes(i < parts.Length ? (int)JsonValueKind.Object : valueKind), AclList, CreateMode.PERSISTENT);
+                await ZooKeeper.createAsync(probe, [], AclList, CreateMode.PERSISTENT);
             }
         }
     }

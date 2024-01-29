@@ -15,7 +15,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Leksiqq/zkjson.net</RepositoryUrl>
     <IsPackable>true</IsPackable>
-    <Version>1.2.1</Version>
+    <Version>1.2.3</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>zookeeper jsonserializer serialize deserialize microservices configuration</PackageTags>
     <Description>Библиотека для сохранения и загрузки данных в/из ZooKeeper с помощью JsonSerializer. The library for saving and loading data to/from ZooKeeper using JsonSerializer.</Description>

@@ -166,7 +166,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                     {
                         factory.AddOp(
                             Op.create(
-                                $"{factory.Path}/_",
+                                manySlashes.Replace($"{factory.Path}/_", "/"),
                                 bytes,
                                 factory.AclList,
                                 CreateMode.PERSISTENT
@@ -177,7 +177,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                     {
                         factory.AddOp(
                             Op.setData(
-                                $"{factory.Path}/_",
+                                manySlashes.Replace($"{factory.Path}/_", "/"),
                                 bytes
                             )
                         );
@@ -243,12 +243,12 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
             }
             else if(jsonValueKind is JsonValueKind.String)
             {
-                dr = factory.ZooKeeper.getDataAsync($"{factory.Path}/_").Result;
+                dr = factory.ZooKeeper.getDataAsync(manySlashes.Replace($"{factory.Path}/_", "/")).Result;
                 writer.WriteStringValue(factory.BytesToString(dr.Data));
             }
             else if(jsonValueKind is JsonValueKind.Number)
             {
-                dr = factory.ZooKeeper.getDataAsync($"{factory.Path}/_").Result;
+                dr = factory.ZooKeeper.getDataAsync(manySlashes.Replace($"{factory.Path}/_", "/")).Result;
                 if (isDouble)
                 {
                     writer.WriteNumberValue(factory.BytesToDouble(dr.Data));
