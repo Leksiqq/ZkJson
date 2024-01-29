@@ -29,6 +29,11 @@ public class ZkJsonSerializer : JsonConverterFactory
         IsReady = true;
         Deletion = false;
     }
+    public void Reset(string newRoot)
+    {
+        Reset();
+        Root = newRoot;
+    }
     public async Task DeleteAsync()
     {
         Deletion = true;
