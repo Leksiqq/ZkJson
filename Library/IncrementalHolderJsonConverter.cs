@@ -17,8 +17,11 @@ internal class IncrementalHolderJsonConverter : JsonConverter<IncrementalHolder>
             writer.WriteStartObject();
             foreach(var it in dict)
             {
-                writer.WritePropertyName(it.Key);
-                JsonSerializer.Serialize(writer, it.Value, options);
+                if(it.Value._value is { })
+                {
+                    writer.WritePropertyName(it.Key);
+                    JsonSerializer.Serialize(writer, it.Value, options);
+                }
             }
             writer.WriteEndObject();
         }
@@ -27,7 +30,10 @@ internal class IncrementalHolderJsonConverter : JsonConverter<IncrementalHolder>
             writer.WriteStartArray();
             foreach (var it in list)
             {
-                JsonSerializer.Serialize(writer, it, options);
+                if(it._value is { })
+                {
+                    JsonSerializer.Serialize(writer, it, options);
+                }
             }
             writer.WriteEndArray();
         }

@@ -188,14 +188,23 @@ public class ZkJsonSerializer : JsonConverterFactory
                 }
                 else
                 {
-                    cur = WalkElement(it.Value, usedBases, basePropertyName, $"{path}/{it.Name}");
-                    if (dict.ContainsKey(it.Name))
+                    string name = it.Name;
+                    if (!name.StartsWith('-'))
                     {
-                        dict[it.Name] = cur;
+                        cur = WalkElement(it.Value, usedBases, basePropertyName, $"{path}/{name}");
                     }
                     else
                     {
-                        dict.Add(it.Name, cur);
+                        name = name[1..];
+                        cur = new IncrementalHolder();
+                    }
+                    if (dict.ContainsKey(name))
+                    {
+                        dict[name] = cur;
+                    }
+                    else
+                    {
+                        dict.Add(name, cur);
                     }
                 }
             }
