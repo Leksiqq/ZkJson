@@ -1,4 +1,10 @@
 {
+  "common": {
+    "base1": {
+      "key": "key1",
+      "value":  123
+    }
+  },
   "para1": {
     "name": "zkeditor1",
     "args": [
@@ -6,7 +12,10 @@
       2,
       3,
       4
-    ]
+    ],
+    "obj": {
+      "base": "../common/base1"
+    }
   },
   "para2": {
     "name": "zkeditor2",
@@ -16,6 +25,11 @@
       3,
       4
     ],
-    "done": false
+    "done": false,
+    "obj": {
+      "value": 234,
+      "-key": "",
+      "base": "../common/base1"
+    }
   }
 }
