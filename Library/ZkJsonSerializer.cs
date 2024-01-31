@@ -1,4 +1,5 @@
-﻿using org.apache.zookeeper;
+﻿#define VERBOSE
+using org.apache.zookeeper;
 using org.apache.zookeeper.data;
 using System.Text;
 using System.Text.Json;
@@ -159,6 +160,11 @@ public class ZkJsonSerializer : JsonConverterFactory
                 if (it.Name == basePropertyName && it.Value.ValueKind is JsonValueKind.String)
                 {
                     string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), it.Value.GetString()!).AbsolutePath, "/");
+#if DEBUG && VERBOSE
+                    Console.WriteLine($"current path: {path}");
+                    Console.WriteLine($"relative path: {it.Value.GetString()!}");
+                    Console.WriteLine($"refPath: {refPath}");
+#endif
                     if (!usedBases.Add(refPath))
                     {
                         throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalLoop };
