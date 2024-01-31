@@ -40,6 +40,7 @@ try
     ZkJsonSerializer factory = new() 
     {
         ZooKeeper = zk,
+        Root = options.Path,
     };
 
     JsonSerializerOptions serializerOptions = new()
@@ -62,7 +63,14 @@ try
         if (await zk.existsAsync("/") is Stat stat)
         {
 
-            await JsonSerializer.SerializeAsync(options.Writer, ZkStub.Instance, serializerOptions);
+            if (options.BasePropertyName is { })
+            {
+                await JsonSerializer.SerializeAsync(options.Writer, factory.IncrementalSerialize(options.BasePropertyName), serializerOptions);
+            }
+            else
+            {
+                await JsonSerializer.SerializeAsync(options.Writer, ZkStub.Instance, serializerOptions);
+            }
             Console.WriteLine(s_successRead);
         }
         else

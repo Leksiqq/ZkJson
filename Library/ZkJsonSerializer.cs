@@ -3,6 +3,7 @@ using org.apache.zookeeper.data;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using static org.apache.zookeeper.ZooDefs;
 
 namespace Net.Leksi.ZkJson;
@@ -14,6 +15,8 @@ public class ZkJsonSerializer : JsonConverterFactory
     private readonly MemoryStream _memoryStream = new();
     private BinaryWriter? _binWriter = null;
     private BinaryReader? _binReader = null;
+
+    internal static readonly Regex manySlashes = new("/{2,}");
 
     public ZooKeeper ZooKeeper { get; set; } = null!;
     public string Root { get; set; } = "/";
@@ -68,13 +71,26 @@ public class ZkJsonSerializer : JsonConverterFactory
             }
         }
     }
+    public JsonElement IncrementalSerialize(string basePropertyName)
+    {
+        HashSet<string> usedBases = [];
+        IncrementalHolder res = WalkAround(usedBases, this, basePropertyName, Root);
+        JsonSerializerOptions op = new();
+        op.Converters.Add(this);
+        return JsonSerializer.SerializeToElement(res, op);
+    }
+
     public override bool CanConvert(Type typeToConvert)
     {
-        return typeof(ZkStub).IsAssignableFrom(typeToConvert);
+        return typeof(ZkStub).IsAssignableFrom(typeToConvert) || typeof(IncrementalHolder).IsAssignableFrom(typeToConvert);
     }
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
-        return new ZkJsonConverter();
+        if (typeof(ZkStub).IsAssignableFrom(typeToConvert))
+        {
+            return new ZkJsonConverter(this);
+        }
+        return new IncrementalHolderJsonConverter();
     }
     internal async Task<List<OpResult>> RunOps()
     {
@@ -120,5 +136,85 @@ public class ZkJsonSerializer : JsonConverterFactory
         action(_binWriter);
         _binWriter.Flush();
         return _memoryStream.ToArray();
+    }
+    private IncrementalHolder WalkAround(HashSet<string> usedBases, ZkJsonSerializer zkJsonSerializer, string basePropertyName, string path)
+    {
+        JsonSerializerOptions op = new();
+        op.Converters.Add(zkJsonSerializer);
+        JsonElement el = JsonSerializer.SerializeToElement(ZkStub.Instance, op);
+        return WalkElement(el, usedBases, basePropertyName, path);
+    }
+    private IncrementalHolder WalkElement(JsonElement el, HashSet<string> usedBases, string basePropertyName, string path)
+    {
+        IncrementalHolder res;
+
+        if (el.ValueKind is JsonValueKind.Object)
+        {
+            Dictionary<string, IncrementalHolder> dict = [];
+            res = new IncrementalHolder { _value = dict };
+
+            foreach (JsonProperty it in el.EnumerateObject())
+            {
+                IncrementalHolder cur;
+                if (it.Name == basePropertyName && it.Value.ValueKind is JsonValueKind.String)
+                {
+                    string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), it.Value.GetString()!).AbsolutePath, "/");
+                    if (!usedBases.Add(refPath))
+                    {
+                        throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalLoop };
+                    }
+                    ZkJsonSerializer serializer = new()
+                    {
+                        ZooKeeper = ZooKeeper,
+                        Root = refPath,
+                        AclList = AclList,
+                    };
+                    cur = WalkAround(usedBases, serializer, basePropertyName, $"{path}/{it.Name}");
+                    if (cur._value is Dictionary<string, IncrementalHolder> dict1)
+                    {
+                        foreach (var en in dict1)
+                        {
+                            if (!dict.ContainsKey(en.Key))
+                            {
+                                dict.Add(en.Key, en.Value);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalNotObject };
+                    }
+                    usedBases.Remove(refPath);
+                }
+                else
+                {
+                    cur = WalkElement(it.Value, usedBases, basePropertyName, $"{path}/{it.Name}");
+                    if (dict.ContainsKey(it.Name))
+                    {
+                        dict[it.Name] = cur;
+                    }
+                    else
+                    {
+                        dict.Add(it.Name, cur);
+                    }
+                }
+            }
+        }
+        else if (el.ValueKind is JsonValueKind.Array)
+        {
+            List<IncrementalHolder> list = [];
+            res = new IncrementalHolder { _value = list };
+            int pos = 0;
+            foreach (JsonElement it in el.EnumerateArray())
+            {
+                list.Add(WalkElement(it, usedBases, basePropertyName, $"{path}/{pos}"));
+                ++pos;
+            }
+        }
+        else
+        {
+            res = new IncrementalHolder { _value = el };
+        }
+        return res;
     }
 }

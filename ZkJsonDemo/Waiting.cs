@@ -6,5 +6,7 @@ enum Waiting
     Read,
     Write,
     Timeout,
+    BasePropertyName,
+    Path,
 }
 
