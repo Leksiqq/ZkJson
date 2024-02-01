@@ -157,40 +157,52 @@ public class ZkJsonSerializer : JsonConverterFactory
             foreach (JsonProperty it in el.EnumerateObject())
             {
                 IncrementalHolder cur;
-                if (it.Name == basePropertyName && it.Value.ValueKind is JsonValueKind.String)
+                if (
+                    it.Name == basePropertyName 
+                    && (
+                        it.Value.ValueKind is JsonValueKind.String
+                        || it.Value.ValueKind is JsonValueKind.Array
+                    )
+                )
                 {
-                    string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), it.Value.GetString()!).AbsolutePath, "/");
+                    string[] bases = (it.Value.ValueKind is JsonValueKind.String 
+                        ? new string[] { it.Value.GetString()! } 
+                        :  it.Value.EnumerateArray().Select(v => v.GetString()).ToArray())!;
+                    foreach(string s in bases)
+                    {
+                        string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), s).AbsolutePath, "/");
 #if DEBUG && VERBOSE
-                    Console.WriteLine($"current path: {path}");
-                    Console.WriteLine($"relative path: {it.Value.GetString()!}");
-                    Console.WriteLine($"refPath: {refPath}");
+                        Console.WriteLine($"current path: {path}");
+                        Console.WriteLine($"relative path: {s}");
+                        Console.WriteLine($"refPath: {refPath}");
 #endif
-                    if (!usedBases.Add(refPath))
-                    {
-                        throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalLoop };
-                    }
-                    ZkJsonSerializer serializer = new()
-                    {
-                        ZooKeeper = ZooKeeper,
-                        Root = refPath,
-                        AclList = AclList,
-                    };
-                    cur = WalkAround(usedBases, serializer, basePropertyName, $"{path}/{it.Name}");
-                    if (cur._value is Dictionary<string, IncrementalHolder> dict1)
-                    {
-                        foreach (var en in dict1)
+                        if (!usedBases.Add(refPath))
                         {
-                            if (!dict.ContainsKey(en.Key))
+                            throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalLoop };
+                        }
+                        ZkJsonSerializer serializer = new()
+                        {
+                            ZooKeeper = ZooKeeper,
+                            Root = refPath,
+                            AclList = AclList,
+                        };
+                        cur = WalkAround(usedBases, serializer, basePropertyName, path);
+                        if (cur._value is Dictionary<string, IncrementalHolder> dict1)
+                        {
+                            foreach (var en in dict1)
                             {
-                                dict.Add(en.Key, en.Value);
+                                if (!dict.ContainsKey(en.Key))
+                                {
+                                    dict.Add(en.Key, en.Value);
+                                }
                             }
                         }
+                        else
+                        {
+                            throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalNotObject };
+                        }
+                        usedBases.Remove(refPath);
                     }
-                    else
-                    {
-                        throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalNotObject };
-                    }
-                    usedBases.Remove(refPath);
                 }
                 else
                 {
