@@ -1,6 +1,7 @@
 ﻿#define VERBOSE
 using org.apache.zookeeper;
 using org.apache.zookeeper.data;
+using System.Collections.Specialized;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -171,11 +172,6 @@ public class ZkJsonSerializer : JsonConverterFactory
                     foreach(string s in bases)
                     {
                         string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), s).AbsolutePath, "/");
-#if DEBUG && VERBOSE
-                        Console.WriteLine($"current path: {path}");
-                        Console.WriteLine($"relative path: {s}");
-                        Console.WriteLine($"refPath: {refPath}");
-#endif
                         if (!usedBases.Add(refPath))
                         {
                             throw new ZkJsonException("Loop detected!") { HResult = ZkJsonException.IncrementalLoop };
