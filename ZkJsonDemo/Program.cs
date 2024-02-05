@@ -94,6 +94,23 @@ try
             return;
         }
     }
+
+}
+catch (JsonException ex)
+{
+    switch (ex.HResult)
+    {
+        case ZkJsonException.IncrementalCycle:
+            Console.WriteLine($"{ex.GetType()}: {ex.Message}");
+            Console.WriteLine("Hops:");
+            foreach (string s in (List<string>)ex.Data[nameof(ZkJsonException.IncrementalCycle)]!)
+            {
+                Console.WriteLine($"    {s}");
+            }
+            Console.WriteLine();
+            Console.WriteLine(ex.StackTrace);
+            break;
+    }
 }
 finally
 {
