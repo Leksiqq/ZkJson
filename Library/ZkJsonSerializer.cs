@@ -107,7 +107,7 @@ public class ZkJsonSerializer : JsonConverterFactory
         }
         Console.WriteLine();
 #endif
-        throw new NotImplementedException();
+        return JsonSerializer.SerializeToElement(tree);
     }
     public override bool CanConvert(Type typeToConvert)
     {

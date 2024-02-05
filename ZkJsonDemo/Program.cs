@@ -110,6 +110,9 @@ catch (JsonException ex)
             Console.WriteLine();
             Console.WriteLine(ex.StackTrace);
             break;
+        default:
+            Console.WriteLine(ex);
+            break;
     }
 }
 finally

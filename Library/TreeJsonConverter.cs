@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.IO.Compression;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
@@ -14,13 +15,14 @@ internal class TreeJsonConverter : JsonConverter<Tree>
     public override void Write(Utf8JsonWriter writer, Tree value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        Stack<Tuple<string, JsonValueKind>> stack = [];
+        List<Tuple<string, JsonValueKind>> stack = [];
         foreach(string key in value._ordered)
         {
-            string[] parts = key.Split('/');
-            while(stack.Count >= parts.Length || parts[stack.Count - 1] != stack.Peek().Item1)
+            string[] parts = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            while(stack.Count >= parts.Length || (stack.Count > 0 && !parts.Zip(stack, (f, s) => f == s.Item1).All(v => v)))
             {
-                var tup = stack.Pop();
+                Tuple<string, JsonValueKind> tup = stack.Last();
+                stack.RemoveAt(stack.Count - 1);
                 if(tup.Item2 is JsonValueKind.Object)
                 {
                     writer.WriteEndObject();
@@ -30,21 +32,39 @@ internal class TreeJsonConverter : JsonConverter<Tree>
                     writer.WriteEndArray();
                 }
             }
-            for(int i = depth; i < parts.Length - 1; ++i)
+            for(int i = stack.Count; i < parts.Length - 1; ++i)
             {
                 if (parts[i].EndsWith("[]"))
                 {
                     string name = parts[i].Substring(0, parts[i].Length - 2);
                     writer.WritePropertyName(name);
-                    stack.Push(new Tuple<string, JsonValueKind>(parts[i], JsonValueKind.Array));
+                    stack.Add(new Tuple<string, JsonValueKind>(parts[i], JsonValueKind.Array));
                     writer.WriteStartArray();
                 }
                 else
                 {
                     writer.WritePropertyName(parts[i]);
-                    stack.Push(new Tuple<string, JsonValueKind>(parts[i], JsonValueKind.Object));
+                    stack.Add(new Tuple<string, JsonValueKind>(parts[i], JsonValueKind.Object));
                     writer.WriteStartObject();
                 }
+            }
+            if (stack.Count == 0 || stack.Last().Item2 is JsonValueKind.Object)
+            {
+                writer.WritePropertyName(parts.Last());
+            }
+            JsonSerializer.Serialize(writer, value._dict[key]);
+        }
+        while (stack.Count > 0)
+        {
+            Tuple<string, JsonValueKind> tup = stack.Last();
+            stack.RemoveAt(stack.Count - 1);
+            if (tup.Item2 is JsonValueKind.Object)
+            {
+                writer.WriteEndObject();
+            }
+            else
+            {
+                writer.WriteEndArray();
             }
         }
         writer.WriteEndObject();
