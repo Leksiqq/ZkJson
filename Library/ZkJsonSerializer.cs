@@ -1,5 +1,4 @@
-﻿#define VERBOSE
-using org.apache.zookeeper;
+﻿using org.apache.zookeeper;
 using org.apache.zookeeper.data;
 using System.Text;
 using System.Text.Json;
@@ -19,7 +18,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     private readonly JsonSerializerOptions _jsonSerializerOptions = new();
 
 #pragma warning disable SYSLIB1045 // Преобразовать в "GeneratedRegexAttribute".
-    internal static readonly Regex manySlashes = new("/{2,}");
+    private static readonly Regex manySlashes = new("/{2,}");
 #pragma warning restore SYSLIB1045 // Преобразовать в "GeneratedRegexAttribute".
 
     public ZooKeeper ZooKeeper { get; set; } = null!;
@@ -87,26 +86,10 @@ public class ZkJsonSerializer : JsonConverterFactory
         Dictionary<string, Node> nodes = [];
         string saveRoot = Root;
         Node root = BuildGraph(source, nodes, Root, basePropertyName, null);
-#if DEBUG && VERBOSE
-        Console.WriteLine("Nodes: ");
-        foreach (var s in nodes.Keys)
-        {
-            Console.WriteLine($"    {s}");
-        }
-        Console.WriteLine();
-#endif
         Tree tree = new(); ;
         ResolveReferences(root, tree, nodes, basePropertyName);
         Root = saveRoot;
         RemovePrefix(tree, Root);
-#if DEBUG && VERBOSE
-        Console.WriteLine("Terminals: ");
-        foreach (var s in tree._ordered)
-        {
-            Console.WriteLine($"    {s}: {tree._dict[s]}");
-        }
-        Console.WriteLine();
-#endif
         return JsonSerializer.SerializeToElement(tree);
     }
     public override bool CanConvert(Type typeToConvert)
@@ -134,6 +117,11 @@ public class ZkJsonSerializer : JsonConverterFactory
     {
         _ops.Add(op);
     }
+    internal static string CollapseSlashes(string source)
+    {
+        return manySlashes.Replace(source, "/");
+    }
+
     internal double BytesToDouble(byte[] bytes) => (double)FromBytes(bytes, br => br.ReadDouble());
     internal long BytesToLong(byte[] bytes) => (long)FromBytes(bytes, br => br.ReadInt64());
     internal string BytesToString(byte[] bytes) => (string)FromBytes(bytes, br => br.ReadString());
@@ -161,7 +149,7 @@ public class ZkJsonSerializer : JsonConverterFactory
         int len = tree._ordered.Count;
         for(int i = 0; i < len; ++i)
         {
-            string prefix1 = manySlashes.Replace($"{prefix}/", "/");
+            string prefix1 = CollapseSlashes($"{prefix}/");
             if (!tree._ordered[i].StartsWith(prefix1))
             {
                 throw new ZkJsonException($"Reference out of tree: {tree._ordered[i]}") { HResult = ZkJsonException.IncrementalOutOfTree, };
@@ -237,14 +225,14 @@ public class ZkJsonSerializer : JsonConverterFactory
         {
             if (node.Children.TryGetValue(name, out Node? child))
             {
-                if (Dfm(child, color, stack, tree, manySlashes.Replace($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}", "/"), nodes, basePropertyName) is int ret && ret > 0)
+                if (Dfm(child, color, stack, tree, CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}"), nodes, basePropertyName) is int ret && ret > 0)
                 {
                     return ret;
                 }
             }
             else if (node.Terminals.TryGetValue(name, out object? obj))
             {
-                string name1 = manySlashes.Replace($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}", "/");
+                string name1 = CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}");
                 if (obj == Node.s_deleted)
                 {
                     tree._dict.Remove(name1);
@@ -312,7 +300,7 @@ public class ZkJsonSerializer : JsonConverterFactory
 #endif
                     foreach (string s in node.BasePaths)
                     {
-                        string refPath = manySlashes.Replace(new Uri(new Uri($"http://localhost{path}"), s).AbsolutePath, "/");
+                        string refPath = CollapseSlashes(new Uri(new Uri($"http://localhost{path}"), s).AbsolutePath);
 #if DEBUG && VERBOSE
                         Console.WriteLine($"    {basePropertyName}: {s} -> {refPath}");
 #endif
@@ -336,7 +324,7 @@ public class ZkJsonSerializer : JsonConverterFactory
                     else if (prop.Value.ValueKind is JsonValueKind.Object || prop.Value.ValueKind is JsonValueKind.Array)
                     {
                         name = prop.Name;
-                        node.Children.Add(name, BuildGraph(prop.Value, nodes, manySlashes.Replace($"{path}/{prop.Name}", "/"), basePropertyName, node)!);
+                        node.Children.Add(name, BuildGraph(prop.Value, nodes, CollapseSlashes($"{path}/{prop.Name}"), basePropertyName, node)!);
                     }
                     else
                     {

@@ -164,7 +164,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                 {
                     _factory.AddOp(
                         Op.create(
-                            ZkJsonSerializer.manySlashes.Replace($"{_factory.Path}/_", "/"),
+                            ZkJsonSerializer.CollapseSlashes($"{_factory.Path}/_"),
                             bytes,
                             _factory.AclList,
                             CreateMode.PERSISTENT
@@ -175,7 +175,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                 {
                     _factory.AddOp(
                         Op.setData(
-                            ZkJsonSerializer.manySlashes.Replace($"{_factory.Path}/_", "/"),
+                            ZkJsonSerializer.CollapseSlashes($"{_factory.Path}/_"),
                             bytes
                         )
                     );
@@ -237,12 +237,12 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
         }
         else if (jsonValueKind is JsonValueKind.String)
         {
-            dr = _factory.ZooKeeper.getDataAsync(ZkJsonSerializer.manySlashes.Replace($"{_factory.Path}/_", "/")).Result;
+            dr = _factory.ZooKeeper.getDataAsync(ZkJsonSerializer.CollapseSlashes($"{_factory.Path}/_")).Result;
             writer.WriteStringValue(_factory.BytesToString(dr.Data));
         }
         else if (jsonValueKind is JsonValueKind.Number)
         {
-            dr = _factory.ZooKeeper.getDataAsync(ZkJsonSerializer.manySlashes.Replace($"{_factory.Path}/_", "/")).Result;
+            dr = _factory.ZooKeeper.getDataAsync(ZkJsonSerializer.CollapseSlashes($"{_factory.Path}/_")).Result;
             if (isDouble)
             {
                 writer.WriteNumberValue(_factory.BytesToDouble(dr.Data));
@@ -275,7 +275,7 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
             {
                 foreach (var child in childrenResult.Children)
                 {
-                    await Delete(factory, ZkJsonSerializer.manySlashes.Replace($"{path}/{child}", "/"));
+                    await Delete(factory, ZkJsonSerializer.CollapseSlashes($"{path}/{child}"));
                 }
             }
             factory.AddOp(Op.delete(path));
