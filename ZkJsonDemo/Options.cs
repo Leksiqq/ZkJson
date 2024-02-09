@@ -6,7 +6,7 @@ internal class Options
 
 {{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-p <path>] [-u] -w [<file>|-]
 or
-{{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-p <path>] [-i <base property name>] -r [<file>|-]
+{{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-p <path>] [-i <script prefix>] -r [<file>|-]
 or
 {{0}} [-c <zookeeper connection string>] [-t <timeout ms>] [-p <path>] -d
 
