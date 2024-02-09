@@ -9,6 +9,7 @@ internal class Node
     internal HashSet<Node> Bases { get; private init; } = [];
     internal Dictionary<string, Node> Children { get; private init; } = [];
     internal Dictionary<string, object> Terminals { get; private init; } = [];
+    internal Dictionary<string, object> TmpValues { get; private init; } = [];
     internal HashSet<Node> Inherits { get; private init; } = [];
     internal bool IsConfirmed { get; set; } = false;
     internal JsonValueKind ValueKind { get; set; }

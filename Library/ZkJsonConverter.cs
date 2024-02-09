@@ -2,7 +2,6 @@
 using org.apache.zookeeper.data;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace Net.Leksi.ZkJson;
 
@@ -199,7 +198,21 @@ internal class ZkJsonConverter : JsonConverter<ZkStub>
                 _factory.PushPathComponent(root);
             }
         }
-        DataResult dr = _factory.ZooKeeper.getDataAsync(_factory.Path).Result;
+        DataResult dr;
+        try
+        {
+            dr = _factory.ZooKeeper.getDataAsync(_factory.Path).Result;
+        }
+        catch (Exception kex)
+        {
+            ZkJsonException ex =  new($"Zookeper exception thrown while getting data at '{_factory.Path}'.", kex)
+            {
+                HResult = ZkJsonException.GetDataFailed
+            };
+            ex.Data.Add(nameof(_factory.Path), _factory.Path);
+            throw ex;
+
+        }
         bool isDouble = false;
         JsonValueKind jsonValueKind = JsonValueKind.Undefined;
         int valueKind = (int)_factory.BytesToLong(dr.Data);

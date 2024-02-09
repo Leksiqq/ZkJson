@@ -4,7 +4,7 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>ZkJsonDemo:u</ActiveDebugProfile>
+    <ActiveDebugProfile>Профиль 1</ActiveDebugProfile>
     <_LastSelectedProfileId>W:\C#\ZkJson\ZkJsonDemo\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

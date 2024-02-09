@@ -18,7 +18,7 @@ where
     -u                                  Update data
     -w -                                Write data from console
     -w <file>                           Write data from file <file>
-    -i <base property name>             Read data incremental
+    -i <script prefix>                  Read data incremental
     -r -                                Read data to console
     -r <file>                           Read data to file <file>
     -d                                  Delete data
