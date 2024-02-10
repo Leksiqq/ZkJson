@@ -1,0 +1,66 @@
+{
+  "kafka": {
+    "config1": {
+      "bootstrap.servers": "vm-kafka:9092",
+      "message.max.bytes": "10000000"
+    }
+  },
+  "imapreaders": {
+    "config1": {
+      "host": "mail.office.lan",
+      "port": 143,
+      "varpath": "/leksi/microservices_demo/var/imapreaders",
+      "storage": {
+        "$:base": "../../storage/config1"
+      }
+    },
+    "finance@translog.org": {
+      "$:base": "config1",
+      "login": "finance1",
+      "password": "",
+      "storage": {
+        "$:base": "../../storage/config1"
+      },
+      "logging": {
+        "$:base": "../../Logging"
+      },
+      "kafka": {
+        "$:base": "../../kafka/config1",
+        "topics": [
+          "finance-e-mails",
+          "all-incoming"
+        ],
+        "sender": "$:eval($:path(-4, 1):$:path(-3, 1))"
+      },
+      "test": "$:value(../../Logging/LogLevel/Default)",
+      "test1": "$:value(kafka/bootstrap.servers)",
+      "test2": "$:path(-2, 1)",
+      "test3": "$:eval($:path(-3, 1):$:path(-2, 1)   $:value(../../Logging/LogLevel/Default))",
+      "test4": "$:value(port)"
+    }
+  },
+  "storage": {
+    "config1": {
+      "endpoint": "vm-kafka:9000",
+      "accessKey": "microservices_demo",
+      "secretKey": "microservices#_demo",
+      "bucket": "bucket1",
+      "folder": "/leksi/microservices_demo/storage/incoming"
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "Debug": "Debug"
+    },
+    "Console": {
+      "None": "None"
+    },
+    "Kafka": {
+      "logger": {
+        "$:base": "../../kafka/config1"
+      }
+    }
+  }
+}
