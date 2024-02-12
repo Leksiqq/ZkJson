@@ -1,11 +1,9 @@
 ﻿using org.apache.zookeeper;
 using org.apache.zookeeper.data;
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using static org.apache.zookeeper.ZooDefs;
 
 namespace Net.Leksi.ZkJson;
@@ -91,10 +89,6 @@ public class ZkJsonSerializer : JsonConverterFactory
         string saveRoot = Root;
         Node root = ZkJsonSerializer.BuildGraph(source, Root, null, bag);
         ResolveReferences(root, bag);
-        foreach(string key in bag.Tree.Keys)
-        {
-            Console.WriteLine(key);
-        }
         Root = saveRoot;
         RemovePrefix(bag.Tree, Root);
         return JsonSerializer.SerializeToElement(bag.Tree, _treeJsonSerializerOptions);
@@ -363,16 +357,9 @@ public class ZkJsonSerializer : JsonConverterFactory
                             : throw new JsonException("Base property can only be string or array!") { HResult = ZkJsonException.IncrementalBasePropertyValueKind, }
                         )
                     )!;
-#if DEBUG && VERBOSE
-                    Console.WriteLine();
-                    Console.WriteLine($"path: {path}");
-#endif
                     foreach (string s in node.BasePaths)
                     {
                         string refPath = CollapseSlashes(new Uri(new Uri($"http://localhost{path}"), s).AbsolutePath);
-#if DEBUG && VERBOSE
-                        Console.WriteLine($"    {basePropertyName}: {s} -> {refPath}");
-#endif
                         if (!bag.Nodes.TryGetValue(refPath, out Node? baseNode))
                         {
                             baseNode = new Node { Path = refPath, };
