@@ -16,6 +16,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     private readonly List<Op> _ops = [];
     private readonly MemoryStream _memoryStream = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions = new();
+    private readonly JsonSerializerOptions _treeJsonSerializerOptions = new();
     private BinaryWriter? _binWriter = null;
     private BinaryReader? _binReader = null;
 
@@ -33,6 +34,7 @@ public class ZkJsonSerializer : JsonConverterFactory
     public ZkJsonSerializer()
     {
         _jsonSerializerOptions.Converters.Add(this);
+        _treeJsonSerializerOptions.Converters.Add(new TreeJsonConverter());
     }
     public void Reset()
     {
@@ -89,9 +91,13 @@ public class ZkJsonSerializer : JsonConverterFactory
         string saveRoot = Root;
         Node root = ZkJsonSerializer.BuildGraph(source, Root, null, bag);
         ResolveReferences(root, bag);
+        foreach(string key in bag.Tree.Keys)
+        {
+            Console.WriteLine(key);
+        }
         Root = saveRoot;
         RemovePrefix(bag.Tree, Root);
-        return JsonSerializer.SerializeToElement(bag.Tree);
+        return JsonSerializer.SerializeToElement(bag.Tree, _treeJsonSerializerOptions);
     }
     public override bool CanConvert(Type typeToConvert)
     {
@@ -145,22 +151,21 @@ public class ZkJsonSerializer : JsonConverterFactory
         _binWriter.Flush();
         return _memoryStream.ToArray();
     }
-    private static void RemovePrefix(Tree tree, string prefix)
+    private static void RemovePrefix(Dictionary<string, JsonElement> tree, string prefix)
     {
-        int len = tree._ordered.Count;
+        int len = tree.Count;
         string prefix1 = CollapseSlashes($"{prefix}/");
+        string[] keys = tree.Keys.ToArray();
         for (int i = 0; i < len; ++i)
         {
-            if (tree._ordered[i].StartsWith(prefix1))
+            if (keys[i].StartsWith(prefix1))
             {
-                string newPath = $"/{tree._ordered[i][prefix1.Length..]}";
-                tree._ordered.Add(newPath);
-                JsonElement el = tree._dict[tree._ordered[i]];
-                tree._dict.Remove(tree._ordered[i]);
-                tree._dict.Add(newPath, el);
+                string newPath = $"/{keys[i][prefix1.Length..]}";
+                JsonElement el = tree[keys[i]];
+                tree.Remove(keys[i]);
+                tree.Add(newPath, el);
             }
         }
-        tree._ordered.RemoveRange(0, len);
     }
     private void ResolveReferences(Node node, IncremetalSerializeBag bag)
     {
@@ -195,13 +200,13 @@ public class ZkJsonSerializer : JsonConverterFactory
             JsonElement term = JsonSerializer.SerializeToElement(ZkStub.Instance, _jsonSerializerOptions);
             foreach (string name in bag.Values[refPath])
             {
-                bag.Tree._dict[name] = term;
+                bag.Tree[name] = term;
             }
         }
         foreach(string path in bag.Evals)
         {
             if (
-                bag.Tree._dict[path] is JsonElement el 
+                bag.Tree[path] is JsonElement el 
                 && el.ValueKind is JsonValueKind.String 
                 && el.GetString() is string s
             )
@@ -211,13 +216,12 @@ public class ZkJsonSerializer : JsonConverterFactory
                 for (Match evalMatch = bag.EvalTmpValue!.Match(s[pos..]); evalMatch.Success; evalMatch = bag.EvalTmpValue!.Match(s[pos..]))
                 {
                     string refPath = CollapseSlashes(new Uri(new Uri($"http://localhost{path}"), evalMatch.Value).AbsolutePath);
-                    sb.Append(s, pos, evalMatch.Groups[0].Index).Append(bag.Tree._dict[refPath]);
+                    sb.Append(s, pos, evalMatch.Groups[0].Index).Append(bag.Tree[refPath]);
                     pos += evalMatch.Groups[0].Index + evalMatch.Length;
-                    bag.Tree._ordered.Remove(refPath);
-                    bag.Tree._dict.Remove(refPath);
+                    bag.Tree.Remove(refPath);
                 }
                 sb.Append(s, pos, s.Length - pos);
-                bag.Tree._dict[path] = JsonSerializer.SerializeToElement(sb.ToString());
+                bag.Tree[path] = JsonSerializer.SerializeToElement(sb.ToString());
             }
         }
     }
@@ -250,78 +254,69 @@ public class ZkJsonSerializer : JsonConverterFactory
                 return ret;
             }
         }
-        foreach (string name in node.Ordered)
+        foreach(var entry in node.Children)
         {
-            if (node.Children.TryGetValue(name, out Node? child))
+            if (Dfm(entry.Value, CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{entry.Key}"), bag) is int ret && ret > 0)
             {
-                if (Dfm(child, CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}"), bag) is int ret && ret > 0)
-                {
-                    return ret;
-                }
+                return ret;
             }
-            else
+        }
+        foreach(var dict in new Dictionary<string, object>[]{ node.Terminals, node.TmpValues })
+        {
+            foreach(var entry in dict)
             {
-                object? obj;
-                if (
-                    (node.Terminals.TryGetValue(name, out object? obj1) && (obj = obj1) == obj)
-                    || (node.TmpValues.TryGetValue(name, out object? obj2) && (obj = obj2) == obj)
-                )
+                string name1 = CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{entry.Key}");
+                if (entry.Value == Node.s_deleted)
                 {
-                    string name1 = CollapseSlashes($"{path}{(node.ValueKind is JsonValueKind.Array ? "[]" : string.Empty)}/{name}");
-                    if (obj == Node.s_deleted)
+                    bag.Tree.Remove(name1);
+                }
+                else if (entry.Value is JsonElement term)
+                {
+                    if (
+                        $"{bag.ScriptPrefix}value(" is string prefix
+                        && term.ValueKind is JsonValueKind.String
+                        && term.GetString() is string s
+                        && s.StartsWith(prefix)
+                    )
                     {
-                        bag.Tree._dict.Remove(name1);
-                        bag.Tree._ordered.Remove(name1);
-                    }
-                    else if (obj is JsonElement term)
-                    {
-                        if (
-                            $"{bag.ScriptPrefix}value(" is string prefix 
-                            && term.ValueKind is JsonValueKind.String 
-                            && term.GetString() is string s 
-                            && s.StartsWith(prefix)
-                        )
+                        string refPath = s[prefix.Length..(s.Length - 1)];
+                        if (bag.Tree.TryGetValue(refPath, out JsonElement el))
                         {
-                            string refPath = s[prefix.Length .. (s.Length - 1)];
-                            if (bag.Tree._dict.TryGetValue(refPath, out JsonElement el))
-                            {
-                                term = el;
-                            }
-                            else
-                            {
-                                if (!bag.Values.TryGetValue(refPath, out HashSet<string>? set))
-                                {
-                                    set = [];
-                                    bag.Values.Add(refPath, set);
-                                }
-                                set.Add(name1);
-                            }
-                        }
-                        else if (
-                            $"{bag.ScriptPrefix}eval(" is string prefix1 
-                            && term.ValueKind is JsonValueKind.String 
-                            && term.GetString() is string s1 
-                            && s1.StartsWith(prefix1)
-                        )
-                        {
-                            bag.Evals.Add(name1);
-                            term = JsonSerializer.SerializeToElement(s1[prefix1.Length..(s1.Length - 1)]);
-                        }
-                        if (!bag.Tree._dict.TryAdd(name1, term))
-                        {
-                            bag.Tree._dict[name1] = term;
+                            term = el;
                         }
                         else
                         {
-                            bag.Tree._ordered.Add(name1);
-                            if (bag.Values.TryGetValue(name1, out HashSet<string>? set))
+                            if (!bag.Values.TryGetValue(refPath, out HashSet<string>? set))
                             {
-                                foreach (string name2 in set)
-                                {
-                                    bag.Tree._dict[name2] = term;
-                                }
-                                bag.Values.Remove(name1);
+                                set = [];
+                                bag.Values.Add(refPath, set);
                             }
+                            set.Add(name1);
+                        }
+                    }
+                    else if (
+                        $"{bag.ScriptPrefix}eval(" is string prefix1
+                        && term.ValueKind is JsonValueKind.String
+                        && term.GetString() is string s1
+                        && s1.StartsWith(prefix1)
+                    )
+                    {
+                        bag.Evals.Add(name1);
+                        term = JsonSerializer.SerializeToElement(s1[prefix1.Length..(s1.Length - 1)]);
+                    }
+                    if (!bag.Tree.TryAdd(name1, term))
+                    {
+                        bag.Tree[name1] = term;
+                    }
+                    else
+                    {
+                        if (bag.Values.TryGetValue(name1, out HashSet<string>? set))
+                        {
+                            foreach (string name2 in set)
+                            {
+                                bag.Tree[name2] = term;
+                            }
+                            bag.Values.Remove(name1);
                         }
                     }
                 }
@@ -331,7 +326,6 @@ public class ZkJsonSerializer : JsonConverterFactory
         bag.Color[node.Path] = 2;
         return 0;
     }
-
     private static Node BuildGraph(JsonElement el, string path, Node? parent, IncremetalSerializeBag bag)
     {
         if (!bag.Nodes.TryGetValue(path, out Node? node))
@@ -400,8 +394,6 @@ public class ZkJsonSerializer : JsonConverterFactory
                         name = prop.Name;
                         BuildNode(prop.Value, name);
                     }
-
-                    node.Ordered!.Add(name);
                 }
 
             }
@@ -413,7 +405,6 @@ public class ZkJsonSerializer : JsonConverterFactory
                 }
                 string name = pos.ToString();
                 BuildNode(item, name);
-                node.Ordered!.Add(name);
             }
                 ++pos;
         }
@@ -435,7 +426,6 @@ public class ZkJsonSerializer : JsonConverterFactory
                     foreach(var entry in bag.TmpValues)
                     {
                         node.TmpValues.Add(entry.Key, entry.Value);
-                        node.Ordered.Add(entry.Key);
                     }
                     bag.TmpValues.Clear();
                 }

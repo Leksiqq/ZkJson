@@ -13,7 +13,6 @@ internal class Node
     internal HashSet<Node> Inherits { get; private init; } = [];
     internal bool IsConfirmed { get; set; } = false;
     internal JsonValueKind ValueKind { get; set; }
-    internal List<string> Ordered { get; private init; } = [];
     internal Node? Parent { get; set; } = null;
     internal string[]? BasePaths { get; set; } = null;
 }

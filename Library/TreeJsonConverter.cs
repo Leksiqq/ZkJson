@@ -1,23 +1,22 @@
-﻿using System.IO.Compression;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Xml.Linq;
 
 namespace Net.Leksi.ZkJson;
 
-internal class TreeJsonConverter : JsonConverter<Tree>
+internal class TreeJsonConverter : JsonConverter<Dictionary<string, JsonElement>>
 {
-    public override Tree? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Dictionary<string, JsonElement>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
 
-    public override void Write(Utf8JsonWriter writer, Tree value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Dictionary<string, JsonElement> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         List<Tuple<string, JsonValueKind>> stack = [];
-        foreach(string key in value._ordered)
+        foreach(string key in value.Keys.OrderBy(k => k))
         {
+            //Console.WriteLine(key);
             string[] parts = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
             while(stack.Count >= parts.Length || (stack.Count > 0 && !parts.Zip(stack, (f, s) => f == s.Item1).All(v => v)))
             {
@@ -52,7 +51,7 @@ internal class TreeJsonConverter : JsonConverter<Tree>
             {
                 writer.WritePropertyName(parts.Last());
             }
-            JsonSerializer.Serialize(writer, value._dict[key]);
+            JsonSerializer.Serialize(writer, value[key]);
         }
         while (stack.Count > 0)
         {

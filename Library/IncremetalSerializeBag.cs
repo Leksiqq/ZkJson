@@ -10,7 +10,7 @@ internal class IncremetalSerializeBag
     internal Regex? ScriptEval;
     internal Regex? EvalTmpValue;
     internal Dictionary<string, Node> Nodes = [];
-    internal Tree Tree = new();
+    internal Dictionary<string, JsonElement> Tree = [];
     internal Stack<string> Stack = [];
     internal Dictionary<string, int> Color = [];
     internal Dictionary<string, HashSet<string>> Values = [];
