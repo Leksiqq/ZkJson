@@ -5,6 +5,8 @@ namespace Net.Leksi.ZkJson;
 
 internal class TreeJsonConverter : JsonConverter<Dictionary<string, JsonElement>>
 {
+    private const string s_skippedTerm = "/{}";
+
     public override Dictionary<string, JsonElement>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
@@ -47,11 +49,14 @@ internal class TreeJsonConverter : JsonConverter<Dictionary<string, JsonElement>
                     writer.WriteStartObject();
                 }
             }
-            if (stack.Count == 0 || stack.Last().Item2 is JsonValueKind.Object)
+            if(!key.EndsWith(s_skippedTerm))
             {
-                writer.WritePropertyName(parts.Last());
+                if (stack.Count == 0 || stack.Last().Item2 is JsonValueKind.Object)
+                {
+                    writer.WritePropertyName(parts.Last());
+                }
+                JsonSerializer.Serialize(writer, value[key]);
             }
-            JsonSerializer.Serialize(writer, value[key]);
         }
         while (stack.Count > 0)
         {
